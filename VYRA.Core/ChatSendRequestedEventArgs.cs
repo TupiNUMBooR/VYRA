@@ -1,6 +1,4 @@
-using System;
-
-namespace VYRA;
+namespace VYRA.Core;
 
 public sealed class ChatSendRequestedEventArgs : EventArgs
 {

@@ -1,4 +1,7 @@
-namespace VYRA.Services;
+using System.IO;
+using System.Windows;
+
+namespace VYRA.WPF.Services;
 
 public static class ErrorHandler
 {
@@ -6,8 +9,11 @@ public static class ErrorHandler
 
     public static void Install()
     {
-        Application.ThreadException += (_, e) =>
+        System.Windows.Application.Current.DispatcherUnhandledException += (_, e) =>
+        {
             Report(e.Exception, "UI thread exception");
+            e.Handled = true;
+        };
 
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
@@ -33,19 +39,12 @@ public static class ErrorHandler
             var path = Path.Combine(AppContext.BaseDirectory, "vyra-errors.log");
 
             lock (Lock)
-            {
                 File.AppendAllText(path, text);
-            }
 
-            MessageBox.Show(
-                text,
-                "VYRA error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+            System.Windows.MessageBox.Show(text, "VYRA error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
         catch
         {
-            // если даже логгер сломался — молчим, не убиваем приложение
         }
     }
 }

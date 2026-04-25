@@ -1,0 +1,14 @@
+<Application x:Class="VYRA.WPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <SolidColorBrush x:Key="VyraBackgroundBrush" Color="#121612"/>
+        <SolidColorBrush x:Key="VyraPanelBrush" Color="#0A0E0A"/>
+        <SolidColorBrush x:Key="VyraInputBrush" Color="#040804"/>
+        <SolidColorBrush x:Key="VyraTextBrush" Color="#BEFFBE"/>
+        <SolidColorBrush x:Key="VyraMutedTextBrush" Color="#82BE82"/>
+        <SolidColorBrush x:Key="VyraUserBubbleBrush" Color="#1E3C1E"/>
+        <SolidColorBrush x:Key="VyraAssistantBubbleBrush" Color="#141E14"/>
+    </Application.Resources>
+</Application>

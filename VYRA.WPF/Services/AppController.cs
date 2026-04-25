@@ -1,7 +1,8 @@
-using VYRA.Models;
-using VYRA.Views;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using VYRA.WPF.Views;
 
-namespace VYRA.Services;
+namespace VYRA.WPF.Services;
 
 public sealed class AppController : IDisposable
 {
@@ -10,9 +11,7 @@ public sealed class AppController : IDisposable
     private readonly TrayIconManager _tray = new();
     private readonly ScreenshotService _screenshots = new();
 
-    private Bitmap? CurrentScreenshot;
-    private string? CurrentWindowTitle;
-
+    private BitmapSource? _currentScreenshot;
     private bool _isChatOpen;
     private bool _isDisposed;
 
@@ -22,11 +21,11 @@ public sealed class AppController : IDisposable
         _overlay.CloseRequested += HideChat;
         _overlay.ExitRequested += Exit;
 
-        _chat.SendRequested += (text, sendScreenshot) =>
+        _chat.SendRequested += (_, e) =>
         {
             try
             {
-                SendChat(text, sendScreenshot);
+                SendChat(e.Text, e.SendScreenshot);
             }
             catch (Exception ex)
             {
@@ -42,7 +41,8 @@ public sealed class AppController : IDisposable
 
     public void Start()
     {
-        _overlay.InitializeHotkeys();
+        _overlay.Show();
+        _overlay.Hide();
         _tray.Show();
     }
 
@@ -65,14 +65,14 @@ public sealed class AppController : IDisposable
         _overlay.PrepareForShow();
         _overlay.Show();
 
+        _chat.Owner = _overlay;
         _chat.ResetForOpen();
         _chat.CenterOnVirtualScreen();
-
-        if (!_chat.Visible)
-            _chat.Show(_overlay);
-
-        _chat.SetPreviewImage(CurrentScreenshot);
+        _chat.SetPreviewImage(_currentScreenshot);
         _chat.CloseOnDeactivate = true;
+
+        if (!_chat.IsVisible)
+            _chat.Show();
 
         _chat.Activate();
         _chat.FocusInput();
@@ -82,7 +82,6 @@ public sealed class AppController : IDisposable
     {
         _isChatOpen = false;
         _chat.CloseOnDeactivate = false;
-
         _chat.Hide();
         _overlay.Hide();
     }
@@ -91,10 +90,8 @@ public sealed class AppController : IDisposable
     {
         try
         {
-            CurrentScreenshot = _screenshots.CaptureVirtualScreen();
-            CurrentWindowTitle = NativeMethods.GetActiveWindowTitle();
-
-            _chat.SetWindowTitle(CurrentWindowTitle);
+            _currentScreenshot = _screenshots.CaptureVirtualScreen();
+            _chat.SetWindowTitle(NativeMethods.GetActiveWindowTitle());
         }
         catch (Exception ex)
         {
@@ -110,19 +107,18 @@ public sealed class AppController : IDisposable
         if (!string.IsNullOrWhiteSpace(text))
             _chat.AddTextMessage(text, true);
 
-        if (sendScreenshot && CurrentScreenshot != null)
-            _chat.AddImageMessage(CurrentScreenshot, true);
+        if (sendScreenshot && _currentScreenshot != null)
+            _chat.AddImageMessage(_currentScreenshot, true);
 
         _chat.ClearInput();
-        CurrentScreenshot = null;
-
+        _currentScreenshot = null;
         HideChat();
     }
 
     private void Exit()
     {
         Dispose();
-        Application.Exit();
+        System.Windows.Application.Current.Shutdown();
     }
 
     public void Dispose()
@@ -130,10 +126,8 @@ public sealed class AppController : IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
 
-        CurrentScreenshot?.Dispose();
-
         _tray.Dispose();
-        _chat.Dispose();
-        _overlay.Dispose();
+        _chat.ForceClose();
+        _overlay.Close();
     }
 }
