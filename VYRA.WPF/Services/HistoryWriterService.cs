@@ -6,13 +6,14 @@ namespace VYRA.WPF.Services;
 
 public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
 {
-    private readonly HistoryService _history = new();
+    private readonly HistoryService _history;
     private readonly Channel<PendingHistoryMessage> _queue;
     private readonly Task _worker;
     private bool _isDisposed;
 
-    public HistoryWriterService()
+    public HistoryWriterService(HistoryService history)
     {
+        _history = history ?? throw new ArgumentNullException(nameof(history));
         _queue = Channel.CreateUnbounded<PendingHistoryMessage>(
             new UnboundedChannelOptions
             {

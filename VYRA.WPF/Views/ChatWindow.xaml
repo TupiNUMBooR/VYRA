@@ -142,11 +142,21 @@
 
         <DataTemplate x:Key="MessageTemplate">
             <Grid Margin="0,4">
+                <TextBlock Text="{Binding DateText}"
+                           Visibility="{Binding IsDateSeparator, Converter={StaticResource BoolToVisibility}}"
+                           Foreground="{StaticResource VyraMutedTextBrush}"
+                           FontFamily="Consolas"
+                           FontSize="13"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,8"/>
+
                 <Border Padding="10"
                         MaxWidth="620"
                         Background="{Binding BubbleBrush}"
                         HorizontalAlignment="{Binding BubbleAlignment}"
-                        CornerRadius="12">
+                        CornerRadius="12"
+                        Visibility="{Binding IsMessage, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel>
                         <Image Source="{Binding Image}"
                                Visibility="{Binding HasImage, Converter={StaticResource BoolToVisibility}}"
@@ -164,13 +174,21 @@
                                    FontSize="15"
                                    TextWrapping="Wrap"/>
 
-                        <TextBlock Text="{Binding StatusText}"
-                                   Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}"
-                                   Foreground="{StaticResource VyraMutedTextBrush}"
-                                   FontFamily="Consolas"
-                                   FontSize="13"
-                                   HorizontalAlignment="Right"
-                                   Margin="0,4,0,0"/>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,4,0,0">
+                            <TextBlock Text="{Binding TimeText}"
+                                       Foreground="{StaticResource VyraMutedTextBrush}"
+                                       FontFamily="Consolas"
+                                       FontSize="12"/>
+
+                            <TextBlock Text="{Binding StatusText}"
+                                       Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}"
+                                       Foreground="{StaticResource VyraMutedTextBrush}"
+                                       FontFamily="Consolas"
+                                       FontSize="13"
+                                       Margin="6,0,0,0"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -206,7 +224,8 @@
                     Padding="12"
                     Margin="0,0,0,10">
                 <ScrollViewer x:Name="HistoryScrollViewer"
-                              VerticalScrollBarVisibility="Auto">
+                              VerticalScrollBarVisibility="Auto"
+                              ScrollChanged="HistoryScrollViewer_ScrollChanged">
                     <ItemsControl x:Name="HistoryList"
                                   ItemTemplate="{StaticResource MessageTemplate}"/>
                 </ScrollViewer>

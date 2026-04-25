@@ -10,12 +10,22 @@ public sealed class ChatMessageViewModel : INotifyPropertyChanged
 {
     private ChatMessageStatus _status;
 
-    private ChatMessageViewModel(string? text, BitmapSource? image, bool isUser, ChatMessageStatus status)
+    private ChatMessageViewModel(
+        string? text,
+        BitmapSource? image,
+        bool isUser,
+        ChatMessageStatus status,
+        DateTime timestamp,
+        bool isDateSeparator,
+        string? dateText)
     {
         Text = text;
         Image = image;
         IsUser = isUser;
         _status = status;
+        Timestamp = timestamp;
+        IsDateSeparator = isDateSeparator;
+        DateText = dateText;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -23,9 +33,15 @@ public sealed class ChatMessageViewModel : INotifyPropertyChanged
     public string? Text { get; }
     public BitmapSource? Image { get; }
     public bool IsUser { get; }
+    public DateTime Timestamp { get; }
+    public bool IsDateSeparator { get; }
+    public bool IsMessage => !IsDateSeparator;
+    public string? DateText { get; }
+    public string TimeText => Timestamp.ToString("HH:mm");
     public bool HasText => !string.IsNullOrWhiteSpace(Text);
     public bool HasImage => Image != null;
     public bool HasStatus => IsUser && Status != ChatMessageStatus.None;
+    public bool HasMeta => IsMessage;
 
     public ChatMessageStatus Status
     {
@@ -62,13 +78,50 @@ public sealed class ChatMessageViewModel : INotifyPropertyChanged
 
     public void MarkFailed() => Status = ChatMessageStatus.Failed;
 
-    public static ChatMessageViewModel TextMessage(string text, bool isUser) => new(text, null, isUser, ChatMessageStatus.None);
+    public static ChatMessageViewModel DateSeparator(DateTime date) => new(
+        text: null,
+        image: null,
+        isUser: false,
+        status: ChatMessageStatus.None,
+        timestamp: date.Date,
+        isDateSeparator: true,
+        dateText: $"──── {date:yyyy.MM.dd} ────");
 
-    public static ChatMessageViewModel ImageMessage(BitmapSource image, bool isUser) => new(null, image, isUser, ChatMessageStatus.None);
+    public static ChatMessageViewModel TextMessage(string text, bool isUser, DateTime? timestamp = null) => new(
+        text,
+        null,
+        isUser,
+        ChatMessageStatus.None,
+        timestamp ?? DateTime.Now,
+        isDateSeparator: false,
+        dateText: null);
 
-    public static ChatMessageViewModel ComboMessage(BitmapSource? image, string? text, bool isUser) => new(text, image, isUser, ChatMessageStatus.None);
+    public static ChatMessageViewModel ImageMessage(BitmapSource image, bool isUser, DateTime? timestamp = null) => new(
+        null,
+        image,
+        isUser,
+        ChatMessageStatus.None,
+        timestamp ?? DateTime.Now,
+        isDateSeparator: false,
+        dateText: null);
 
-    public static ChatMessageViewModel PendingUserMessage(BitmapSource? image, string? text) => new(text, image, true, ChatMessageStatus.Sending);
+    public static ChatMessageViewModel ComboMessage(BitmapSource? image, string? text, bool isUser, DateTime? timestamp = null) => new(
+        text,
+        image,
+        isUser,
+        ChatMessageStatus.None,
+        timestamp ?? DateTime.Now,
+        isDateSeparator: false,
+        dateText: null);
+
+    public static ChatMessageViewModel PendingUserMessage(BitmapSource? image, string? text, DateTime? timestamp = null) => new(
+        text,
+        image,
+        true,
+        ChatMessageStatus.Sending,
+        timestamp ?? DateTime.Now,
+        isDateSeparator: false,
+        dateText: null);
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {

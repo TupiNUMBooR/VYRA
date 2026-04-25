@@ -15,9 +15,11 @@ public partial class ChatWindow : Window
     private bool _isClosingForReal;
     private bool _isSending;
     private bool _hasScreenshot;
+    private bool _isPrependingHistory;
 
     public event EventHandler<ChatSendRequestedEventArgs>? SendRequested;
     public event Action? CloseRequested;
+    public event Action? PreviousHistoryRequested;
 
     public bool CloseOnDeactivate { get; set; }
 
@@ -40,6 +42,45 @@ public partial class ChatWindow : Window
         UpdatePreviewLayout();
         UpdateSendAvailability();
         FocusInput();
+    }
+
+    public void LoadHistoryDay(IEnumerable<ChatMessageViewModel> messages)
+    {
+        _messages.Clear();
+
+        foreach (var message in messages)
+            _messages.Add(message);
+
+        ScrollHistoryToBottom();
+    }
+
+    public void PrependHistoryDay(IEnumerable<ChatMessageViewModel> messages)
+    {
+        var items = messages.ToList();
+        if (items.Count == 0)
+            return;
+
+        _isPrependingHistory = true;
+
+        var oldExtentHeight = HistoryScrollViewer.ExtentHeight;
+        var oldVerticalOffset = HistoryScrollViewer.VerticalOffset;
+
+        for (var index = items.Count - 1; index >= 0; index--)
+            _messages.Insert(0, items[index]);
+
+        Dispatcher.BeginInvoke(() =>
+        {
+            HistoryScrollViewer.UpdateLayout();
+            var delta = HistoryScrollViewer.ExtentHeight - oldExtentHeight;
+            HistoryScrollViewer.ScrollToVerticalOffset(oldVerticalOffset + delta);
+            _isPrependingHistory = false;
+        });
+    }
+
+    public void AppendMessage(ChatMessageViewModel message)
+    {
+        _messages.Add(message);
+        ScrollHistoryToBottom();
     }
 
     public void FocusInput()
@@ -285,6 +326,17 @@ public partial class ChatWindow : Window
         ScreenshotDisabledOverlay.Visibility = enabled
             ? Visibility.Collapsed
             : Visibility.Visible;
+
+        UpdatePreviewLayout();
+        UpdateSendAvailability();
+    }
+
+    private void HistoryScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_isPrependingHistory || e.VerticalChange >= 0 || HistoryScrollViewer.VerticalOffset > 24)
+            return;
+
+        PreviousHistoryRequested?.Invoke();
     }
 
     private void Window_Deactivated(object sender, EventArgs e)
