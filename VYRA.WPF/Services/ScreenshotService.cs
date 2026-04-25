@@ -28,6 +28,19 @@ public sealed class ScreenshotService
         return stream.ToArray();
     }
 
+    public static byte[] ToJpgBytes(BitmapSource source, int qualityLevel = 80)
+    {
+        var encoder = new JpegBitmapEncoder
+        {
+            QualityLevel = Math.Clamp(qualityLevel, 1, 100)
+        };
+        encoder.Frames.Add(BitmapFrame.Create(source));
+
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
+
     private static BitmapSource ToBitmapSource(Bitmap bitmap)
     {
         using var stream = new MemoryStream();

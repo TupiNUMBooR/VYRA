@@ -10,8 +10,10 @@ public sealed class AppController : IDisposable
     private readonly ChatWindow _chat = new();
     private readonly TrayIconManager _tray = new();
     private readonly ScreenshotService _screenshots = new();
+    private readonly HistoryWriterService _historyWriter = new();
 
     private BitmapSource? _currentScreenshot;
+    private string? _currentWindowTitle;
     private bool _isChatOpen;
     private bool _isDisposed;
 
@@ -91,7 +93,8 @@ public sealed class AppController : IDisposable
         try
         {
             _currentScreenshot = _screenshots.CaptureVirtualScreen();
-            _chat.SetWindowTitle(NativeMethods.GetActiveWindowTitle());
+            _currentWindowTitle = NativeMethods.GetActiveWindowTitle();
+            _chat.SetWindowTitle(_currentWindowTitle);
         }
         catch (Exception ex)
         {
@@ -102,14 +105,19 @@ public sealed class AppController : IDisposable
     private void SendChat(string text, bool sendScreenshot)
     {
         var image = sendScreenshot ? _currentScreenshot : null;
+        var windowTitle = _currentWindowTitle;
 
         if (string.IsNullOrWhiteSpace(text) && image == null)
             return;
 
         _chat.AddComboMessage(image, text, true);
-
         _chat.ClearInput();
+
+        _historyWriter.EnqueueUserMessage(text, image, windowTitle);
+
         _currentScreenshot = null;
+        _currentWindowTitle = null;
+
         HideChat();
     }
 
@@ -123,6 +131,8 @@ public sealed class AppController : IDisposable
     {
         if (_isDisposed) return;
         _isDisposed = true;
+
+        _historyWriter.Dispose();
 
         _tray.Dispose();
         _chat.ForceClose();
