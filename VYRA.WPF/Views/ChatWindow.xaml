@@ -9,7 +9,8 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         Topmost="True"
-        Background="{StaticResource VyraBackgroundBrush}"
+        AllowsTransparency="True"
+        Background="Transparent"
         PreviewKeyDown="Window_PreviewKeyDown"
         Deactivated="Window_Deactivated"
         Closing="Window_Closing">
@@ -35,7 +36,7 @@
             <Setter Property="CaretBrush" Value="{StaticResource VyraAccentBrush}"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="15"/>
-            <Setter Property="BorderBrush" Value="{StaticResource VyraBorderBrush}"/>
+            <Setter Property="BorderBrush" Value="#4A9D38"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
@@ -44,14 +45,99 @@
         </Style>
 
         <Style x:Key="VyraSendButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#123F18"/>
+            <Setter Property="Background" Value="#174D1E"/>
             <Setter Property="Foreground" Value="{StaticResource VyraTextBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource VyraBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="12,5"/>
-            <Setter Property="MinWidth" Value="112"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="MinWidth" Value="136"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#1F6A28"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#0F3315"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="VyraToggleStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource VyraTextBrush}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Root"
+                                Background="#182018"
+                                BorderBrush="#4A9D38"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal">
+                                <Border x:Name="Box"
+                                        Width="18"
+                                        Height="18"
+                                        CornerRadius="4"
+                                        Background="#101510"
+                                        BorderBrush="#7ED957"
+                                        BorderThickness="1"
+                                        Margin="0,0,8,0">
+                                    <TextBlock x:Name="CheckMark"
+                                               Text="✓"
+                                               Foreground="#9EFF00"
+                                               FontSize="14"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Visibility="Collapsed"/>
+                                </Border>
+
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#173A1C"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#9EFF00"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#9EFF00"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <DataTemplate x:Key="MessageTemplate">
@@ -91,85 +177,109 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Grid Margin="12"
-          Background="{StaticResource VyraBackgroundBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="160"/>
-            <RowDefinition Height="34"/>
-        </Grid.RowDefinitions>
+    <Border Background="{StaticResource VyraBackgroundBrush}"
+            BorderBrush="{StaticResource VyraBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="14"
+            Padding="12"
+            SnapsToDevicePixels="True">
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition x:Name="ScreenshotColumn" Width="1*"/>
-        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="160"/>
+                <RowDefinition Height="42"/>
+            </Grid.RowDefinitions>
 
-        <Border Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                Background="{StaticResource VyraPanelBrush}"
-                BorderBrush="{StaticResource VyraBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="10"
-                Padding="12"
-                Margin="0,0,0,10">
-            <ScrollViewer x:Name="HistoryScrollViewer" VerticalScrollBarVisibility="Auto">
-                <ItemsControl x:Name="HistoryList" ItemTemplate="{StaticResource MessageTemplate}"/>
-            </ScrollViewer>
-        </Border>
-
-        <TextBox x:Name="InputBox"
-                 Grid.Row="1"
-                 Grid.Column="0"
-                 Margin="0,0,10,8"
-                 Style="{StaticResource VyraTextBoxStyle}"
-                 PreviewKeyDown="InputBox_PreviewKeyDown"
-                 TextChanged="InputBox_TextChanged"/>
-
-        <Border x:Name="ScreenshotPreviewHost"
-                Grid.Row="1"
-                Grid.Column="1"
-                Margin="0,0,0,8"
-                Background="{StaticResource VyraPanelBrush}"
-                BorderBrush="{StaticResource VyraBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="10"
-                Padding="6">
-            <Image x:Name="ScreenshotPreview"
-                   Stretch="Uniform"
-                   Cursor="Hand"
-                   MouseLeftButtonDown="ScreenshotPreview_MouseLeftButtonDown"/>
-        </Border>
-
-        <Grid Grid.Row="2"
-              Grid.Column="0"
-              Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition x:Name="ScreenshotColumn" Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0"
-                       Text="Shift+Enter new line    Esc close"
-                       Foreground="{StaticResource VyraMutedTextBrush}"
-                       VerticalAlignment="Center"/>
+            <Border Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Background="{StaticResource VyraPanelBrush}"
+                    BorderBrush="{StaticResource VyraBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="12"
+                    Margin="0,0,0,10">
+                <ScrollViewer x:Name="HistoryScrollViewer"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="HistoryList"
+                                  ItemTemplate="{StaticResource MessageTemplate}"/>
+                </ScrollViewer>
+            </Border>
 
-            <Button x:Name="SendButton"
+            <TextBox x:Name="InputBox"
+                     Grid.Row="1"
+                     Grid.Column="0"
+                     Margin="0,0,10,8"
+                     Style="{StaticResource VyraTextBoxStyle}"
+                     PreviewKeyDown="InputBox_PreviewKeyDown"
+                     TextChanged="InputBox_TextChanged"/>
+
+            <Border x:Name="ScreenshotPreviewHost"
+                    Grid.Row="1"
                     Grid.Column="1"
-                    Content="Send (Enter)"
-                    Style="{StaticResource VyraSendButtonStyle}"
-                    Margin="0,0,14,0"
-                    Click="SendButton_Click"/>
+                    Margin="0,0,0,8"
+                    Background="{StaticResource VyraPanelBrush}"
+                    BorderBrush="{StaticResource VyraBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="6">
+                <Grid>
+                    <Image x:Name="ScreenshotPreview"
+                           Stretch="Uniform"
+                           Cursor="Hand"
+                           MouseLeftButtonDown="ScreenshotPreview_MouseLeftButtonDown"/>
 
-            <CheckBox x:Name="SendScreenshotCheckBox"
-                      Grid.Column="2"
-                      Content="Send screenshot (Alt+S)"
-                      Foreground="{StaticResource VyraTextBrush}"
-                      IsChecked="True"
-                      VerticalAlignment="Center"
-                      Checked="SendScreenshotCheckBox_Changed"
-                      Unchecked="SendScreenshotCheckBox_Changed"/>
+                    <Border x:Name="ScreenshotDisabledOverlay"
+                            Background="#AA000000"
+                            CornerRadius="8"
+                            Visibility="Collapsed"
+                            IsHitTestVisible="False">
+                        <TextBlock Text="screenshot disabled"
+                                   Foreground="{StaticResource VyraMutedTextBrush}"
+                                   FontFamily="Consolas"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="Shift+Enter new line    Esc close"
+                           Foreground="{StaticResource VyraMutedTextBrush}"
+                           VerticalAlignment="Center"/>
+
+                <Button x:Name="SendButton"
+                        Grid.Column="1"
+                        Content="Send  (Enter)"
+                        Style="{StaticResource VyraSendButtonStyle}"
+                        Margin="0,0,10,0"
+                        Click="SendButton_Click"/>
+
+                <CheckBox x:Name="SendScreenshotCheckBox"
+                          Grid.Column="2"
+                          Content="Screenshot  Alt+S"
+                          Style="{StaticResource VyraToggleStyle}"
+                          IsChecked="True"
+                          VerticalAlignment="Center"
+                          Checked="SendScreenshotCheckBox_Changed"
+                          Unchecked="SendScreenshotCheckBox_Changed"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Window>

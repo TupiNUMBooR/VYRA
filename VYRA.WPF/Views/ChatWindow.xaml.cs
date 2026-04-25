@@ -279,9 +279,12 @@ public partial class ChatWindow : Window
 
     private void SendScreenshotCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        UpdatePreviewLayout();
-        UpdateSendAvailability();
-        FocusInput();
+        var enabled = SendScreenshotCheckBox.IsChecked == true;
+
+        ScreenshotPreview.Opacity = enabled ? 1.0 : 0.35;
+        ScreenshotDisabledOverlay.Visibility = enabled
+            ? Visibility.Collapsed
+            : Visibility.Visible;
     }
 
     private void Window_Deactivated(object sender, EventArgs e)
