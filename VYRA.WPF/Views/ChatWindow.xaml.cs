@@ -46,8 +46,10 @@ public partial class ChatWindow : Window
 
     public void CenterOnVirtualScreen()
     {
-        Left = SystemParameters.VirtualScreenLeft + (SystemParameters.VirtualScreenWidth - Width) / 2;
-        Top = SystemParameters.VirtualScreenTop + (SystemParameters.VirtualScreenHeight - Height) / 2;
+        ApplyScreenRelativeSize();
+
+        Left = SystemParameters.WorkArea.Left + (SystemParameters.WorkArea.Width - Width) / 2;
+        Top = SystemParameters.WorkArea.Top + (SystemParameters.WorkArea.Height - Height) / 2;
     }
 
     public void SetPreviewImage(BitmapSource? image)
@@ -82,13 +84,19 @@ public partial class ChatWindow : Window
     {
         Title = string.IsNullOrWhiteSpace(title)
             ? "VYRA"
-            : $"VYRA — {title}";
+            : $"VYRA [{title}]";
     }
 
     public void ForceClose()
     {
         _isClosingForReal = true;
         Close();
+    }
+
+    private void ApplyScreenRelativeSize()
+    {
+        Width = Math.Clamp(SystemParameters.WorkArea.Width * 0.68, MinWidth, 1280);
+        Height = Math.Clamp(SystemParameters.WorkArea.Height * 0.8, MinHeight, 1000);
     }
 
     private void Send()
