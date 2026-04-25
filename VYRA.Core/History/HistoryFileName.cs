@@ -39,7 +39,7 @@ public static class HistoryFileName
 
         var normalized = value.Normalize(NormalizationForm.FormD);
         var builder = new StringBuilder();
-        var previousWasDash = false;
+        var previousWasSeparator = false;
 
         foreach (var symbol in normalized)
         {
@@ -49,18 +49,18 @@ public static class HistoryFileName
 
             var lower = char.ToLowerInvariant(symbol);
 
-            if (IsAllowed(lower))
+            if (IsAsciiLetterOrDigit(lower))
             {
                 builder.Append(lower);
-                previousWasDash = false;
+                previousWasSeparator = false;
                 continue;
             }
 
-            if (builder.Length == 0 || previousWasDash)
+            if (builder.Length == 0 || previousWasSeparator)
                 continue;
 
             builder.Append('-');
-            previousWasDash = true;
+            previousWasSeparator = true;
         }
 
         var result = builder.ToString().Trim('-');
@@ -71,10 +71,9 @@ public static class HistoryFileName
         return result;
     }
 
-    private static bool IsAllowed(char symbol)
+    private static bool IsAsciiLetterOrDigit(char symbol)
     {
         return symbol is >= 'a' and <= 'z'
-            || symbol is >= '0' and <= '9'
-            || symbol == '-';
+            || symbol is >= '0' and <= '9';
     }
 }
