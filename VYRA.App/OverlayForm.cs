@@ -1,31 +1,11 @@
-using System.Runtime.InteropServices;
-
 namespace VYRA.App;
 
 public sealed class OverlayForm : Form
 {
-    private const int HOTKEY_ID = 1;
-    private const int WM_HOTKEY = 0x0312;
+    private const int ShowStubHotkeyId = 1;
+    private const int ExitHotkeyId = 2;
 
-    private const uint MOD_SHIFT = 0x0004;
-    private const uint VK_T = 0x54;
-
-    private const int GWL_EXSTYLE = -20;
-    private const int WS_EX_TRANSPARENT = 0x00000020;
-    private const int WS_EX_LAYERED = 0x00080000;
-    private const int WS_EX_TOOLWINDOW = 0x00000080;
-
-    [DllImport("user32.dll")]
-    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
-
-    [DllImport("user32.dll")]
-    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    private readonly NotifyIcon trayIcon;
 
     public OverlayForm()
     {
@@ -38,41 +18,144 @@ public sealed class OverlayForm : Form
 
         BackColor = Color.Lime;
         TransparencyKey = Color.Lime;
+
+        trayIcon = new NotifyIcon
+        {
+            Icon = LoadTrayIcon(),
+            Text = "VYRA",
+            Visible = true,
+            ContextMenuStrip = BuildTrayMenu()
+        };
     }
 
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
-        var style = GetWindowLong(Handle, GWL_EXSTYLE);
-        SetWindowLong(
+        ApplyOverlayWindowStyle();
+
+        NativeMethods.RegisterHotKey(
             Handle,
-            GWL_EXSTYLE,
-            style | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW
+            ShowStubHotkeyId,
+            NativeMethods.MOD_SHIFT,
+            NativeMethods.VK_T
         );
 
-        RegisterHotKey(Handle, HOTKEY_ID, MOD_SHIFT, VK_T);
+        NativeMethods.RegisterHotKey(
+            Handle,
+            ExitHotkeyId,
+            NativeMethods.MOD_SHIFT | NativeMethods.MOD_ALT,
+            NativeMethods.VK_T
+        );
+    }
+
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+
+        ApplyOverlayWindowStyle();
     }
 
     protected override void OnHandleDestroyed(EventArgs e)
     {
-        UnregisterHotKey(Handle, HOTKEY_ID);
+        NativeMethods.UnregisterHotKey(Handle, ShowStubHotkeyId);
+        NativeMethods.UnregisterHotKey(Handle, ExitHotkeyId);
+
+        trayIcon.Visible = false;
+        trayIcon.Dispose();
+
         base.OnHandleDestroyed(e);
     }
 
     protected override void WndProc(ref Message m)
     {
-        if (m.Msg == WM_HOTKEY && m.WParam.ToInt32() == HOTKEY_ID)
+        if (m.Msg == NativeMethods.WM_HOTKEY)
         {
-            MessageBox.Show(
-                "VYRA heard Shift+T.",
-                "VYRA",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            HandleHotkey(m.WParam.ToInt32());
             return;
         }
 
         base.WndProc(ref m);
+    }
+
+    private void HandleHotkey(int hotkeyId)
+    {
+        switch (hotkeyId)
+        {
+            case ShowStubHotkeyId:
+                ShowStub();
+                break;
+
+            case ExitHotkeyId:
+                Application.Exit();
+                break;
+        }
+    }
+
+    private void ShowStub()
+    {
+        NativeMethods.SetForegroundWindow(Handle);
+
+        MessageBox.Show(
+            this,
+            "VYRA heard Shift+T.",
+            "VYRA",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information
+        );
+    }
+
+    private void ApplyOverlayWindowStyle()
+    {
+        var style = NativeMethods.GetWindowLong(
+            Handle,
+            NativeMethods.GWL_EXSTYLE
+        );
+
+        style |= NativeMethods.WS_EX_LAYERED;
+        style |= NativeMethods.WS_EX_TRANSPARENT;
+        style |= NativeMethods.WS_EX_TOOLWINDOW;
+        style &= ~NativeMethods.WS_EX_APPWINDOW;
+
+        NativeMethods.SetWindowLong(
+            Handle,
+            NativeMethods.GWL_EXSTYLE,
+            style
+        );
+    }
+
+    private static ContextMenuStrip BuildTrayMenu()
+    {
+        var menu = new ContextMenuStrip();
+
+        menu.Items.Add("Show stub", null, (_, _) =>
+        {
+            MessageBox.Show(
+                "VYRA is still here.",
+                "VYRA",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+        });
+
+        menu.Items.Add("Exit", null, (_, _) => Application.Exit());
+
+        return menu;
+    }
+
+    private static Icon LoadTrayIcon()
+    {
+        var path = Path.Combine(
+            AppContext.BaseDirectory,
+            "Assets",
+            "icon.ico"
+        );
+
+        if (File.Exists(path))
+        {
+            return new Icon(path);
+        }
+
+        return SystemIcons.Application;
     }
 }
