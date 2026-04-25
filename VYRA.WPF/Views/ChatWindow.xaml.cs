@@ -124,6 +124,44 @@ public partial class ChatWindow : Window
         InputBox.Margin = visible ? new Thickness(0, 0, 10, 8) : new Thickness(0, 0, 0, 8);
     }
 
+    private void ShowImagePreview(BitmapSource source)
+    {
+        var oldCloseOnDeactivate = CloseOnDeactivate;
+        CloseOnDeactivate = false;
+
+        var preview = new ImagePreviewWindow(source)
+        {
+            Owner = this
+        };
+
+        preview.Closed += (_, _) =>
+        {
+            CloseOnDeactivate = oldCloseOnDeactivate;
+            Activate();
+            FocusInput();
+        };
+
+        preview.Show();
+    }
+
+    private void MessageImage_MouseLeftButtonDown(object sender, WpfInput.MouseButtonEventArgs e)
+    {
+        if (sender is not Image image || image.Source is not BitmapSource source)
+            return;
+
+        ShowImagePreview(source);
+        e.Handled = true;
+    }
+
+    private void ScreenshotPreview_MouseLeftButtonDown(object sender, WpfInput.MouseButtonEventArgs e)
+    {
+        if (ScreenshotPreview.Source is not BitmapSource source)
+            return;
+
+        ShowImagePreview(source);
+        e.Handled = true;
+    }
+
     private void ScrollHistoryToBottom()
     {
         Dispatcher.BeginInvoke(() => HistoryScrollViewer.ScrollToEnd());

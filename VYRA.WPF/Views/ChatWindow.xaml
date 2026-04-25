@@ -46,7 +46,7 @@
         <DataTemplate x:Key="MessageTemplate">
             <Grid Margin="0,4">
                 <Border Padding="10"
-                        MaxWidth="420"
+                        MaxWidth="620"
                         Background="{Binding BubbleBrush}"
                         HorizontalAlignment="{Binding BubbleAlignment}"
                         CornerRadius="12">
@@ -56,7 +56,9 @@
                                Width="200"
                                Height="125"
                                Stretch="Uniform"
-                               Margin="0,0,0,8"/>
+                               Margin="0,0,0,8"
+                               Cursor="Hand"
+                               MouseLeftButtonDown="MessageImage_MouseLeftButtonDown"/>
 
                         <TextBlock Text="{Binding Text}"
                                    Visibility="{Binding HasText, Converter={StaticResource BoolToVisibility}}"
@@ -113,7 +115,10 @@
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="6">
-            <Image x:Name="ScreenshotPreview" Stretch="Uniform"/>
+            <Image x:Name="ScreenshotPreview"
+                   Stretch="Uniform"
+                   Cursor="Hand"
+                   MouseLeftButtonDown="ScreenshotPreview_MouseLeftButtonDown"/>
         </Border>
 
         <Grid Grid.Row="2"
