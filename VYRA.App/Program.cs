@@ -1,4 +1,6 @@
-namespace VYRA.App;
+using VYRA.Services;
+
+namespace VYRA;
 
 internal static class Program
 {
@@ -6,6 +8,12 @@ internal static class Program
     private static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Application.Run(new OverlayForm());
+
+        ErrorHandler.Install();
+
+        using var controller = new AppController();
+        controller.Start();
+
+        Application.Run();
     }
 }
