@@ -24,7 +24,7 @@ public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
         _worker = Task.Run(ProcessQueueAsync);
     }
 
-    public void EnqueueUserMessage(string? text, BitmapSource? image, string? windowTitle)
+    public void EnqueueUserMessage(string? text, BitmapSource? image, string? sourceName)
     {
         if (_isDisposed)
             return;
@@ -35,7 +35,7 @@ public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
             Role: "USER",
             Text: text,
             Image: safeImage,
-            WindowTitle: windowTitle,
+            SourceName: sourceName,
             Timestamp: DateTime.Now);
 
         if (!_queue.Writer.TryWrite(message))
@@ -78,7 +78,7 @@ public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
                         role: message.Role,
                         text: message.Text,
                         imageJpg: imageJpg,
-                        windowTitle: message.WindowTitle,
+                        windowTitle: message.SourceName,
                         timestamp: message.Timestamp)
                     .ConfigureAwait(false);
             }
@@ -109,6 +109,6 @@ public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
         string Role,
         string? Text,
         BitmapSource? Image,
-        string? WindowTitle,
+        string? SourceName,
         DateTime Timestamp);
 }

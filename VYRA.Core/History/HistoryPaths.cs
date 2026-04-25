@@ -1,24 +1,29 @@
-using System.Globalization;
-
 namespace VYRA.Core.History;
 
 public sealed class HistoryPaths
 {
-    public HistoryPaths(string? rootPath = null)
+    public HistoryPaths(string? appDataRootPath = null)
     {
-        RootPath = string.IsNullOrWhiteSpace(rootPath)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VYRA", "history")
-            : rootPath;
+        AppDataRootPath = appDataRootPath
+            ?? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "VYRA");
+
+        RootPath = Path.Combine(AppDataRootPath, "history");
     }
+
+    public string AppDataRootPath { get; }
 
     public string RootPath { get; }
 
-    public string GetMonthDirectory(DateTime timestamp) =>
-        Path.Combine(RootPath, timestamp.ToString("yyyy-MM", CultureInfo.InvariantCulture));
+    public string GetMonthDirectory(DateTime timestamp)
+    {
+        return Path.Combine(RootPath, timestamp.ToString("yyyy-MM"));
+    }
 
     public string GetDayFilePath(DateTime timestamp)
     {
-        var dayName = timestamp.ToString("dddd", CultureInfo.InvariantCulture).ToLowerInvariant();
-        return Path.Combine(GetMonthDirectory(timestamp), $"{timestamp:dd}-{dayName}.md");
+        var fileName = $"{timestamp:dd}-{timestamp.DayOfWeek.ToString().ToLowerInvariant()}.md";
+        return Path.Combine(GetMonthDirectory(timestamp), fileName);
     }
 }

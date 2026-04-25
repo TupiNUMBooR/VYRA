@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,8 +28,14 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern int GetWindowTextLength(IntPtr hWnd);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
@@ -54,12 +61,18 @@ internal static class NativeMethods
             GetSystemMetrics(SM_CYVIRTUALSCREEN));
     }
 
-    public static string GetActiveWindowTitle()
+    public static ActiveWindowInfo GetActiveWindowInfo()
     {
         var handle = GetForegroundWindow();
-        var sb = new StringBuilder(256);
-        GetWindowText(handle, sb, sb.Capacity);
-        return sb.ToString();
+
+        return new ActiveWindowInfo(
+            Title: GetWindowTitle(handle),
+            ProcessName: GetProcessName(handle));
+    }
+
+    public static string GetActiveWindowTitle()
+    {
+        return GetActiveWindowInfo().Title ?? string.Empty;
     }
 
     public static void HideFromAltTab(Window window)
@@ -72,4 +85,45 @@ internal static class NativeMethods
         exStyle &= ~WS_EX_APPWINDOW;
         SetWindowLong(handle, GWL_EXSTYLE, exStyle);
     }
+
+    private static string? GetWindowTitle(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero)
+            return null;
+
+        var length = GetWindowTextLength(handle);
+        if (length <= 0)
+            return null;
+
+        var builder = new StringBuilder(length + 1);
+        GetWindowText(handle, builder, builder.Capacity);
+
+        var title = builder.ToString();
+        return string.IsNullOrWhiteSpace(title) ? null : title;
+    }
+
+    private static string? GetProcessName(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero)
+            return null;
+
+        GetWindowThreadProcessId(handle, out var processId);
+
+        if (processId == 0)
+            return null;
+
+        try
+        {
+            using var process = Process.GetProcessById((int)processId);
+            return string.IsNullOrWhiteSpace(process.ProcessName)
+                ? null
+                : process.ProcessName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
+
+internal sealed record ActiveWindowInfo(string? Title, string? ProcessName);

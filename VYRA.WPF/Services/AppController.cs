@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
+using VYRA.Core.History;
 using VYRA.WPF.Views;
 
 namespace VYRA.WPF.Services;
@@ -14,6 +15,7 @@ public sealed class AppController : IDisposable
 
     private BitmapSource? _currentScreenshot;
     private string? _currentWindowTitle;
+    private string? _currentProcessName;
     private bool _isChatOpen;
     private bool _isDisposed;
 
@@ -43,6 +45,8 @@ public sealed class AppController : IDisposable
 
     public void Start()
     {
+        AppLinkService.EnsureConvenienceLinks();
+
         _overlay.Show();
         _overlay.Hide();
         _tray.Show();
@@ -93,7 +97,11 @@ public sealed class AppController : IDisposable
         try
         {
             _currentScreenshot = _screenshots.CaptureVirtualScreen();
-            _currentWindowTitle = NativeMethods.GetActiveWindowTitle();
+
+            var activeWindow = NativeMethods.GetActiveWindowInfo();
+            _currentWindowTitle = activeWindow.Title;
+            _currentProcessName = activeWindow.ProcessName;
+
             _chat.SetWindowTitle(_currentWindowTitle);
         }
         catch (Exception ex)
@@ -105,7 +113,7 @@ public sealed class AppController : IDisposable
     private void SendChat(string text, bool sendScreenshot)
     {
         var image = sendScreenshot ? _currentScreenshot : null;
-        var windowTitle = _currentWindowTitle;
+        var sourceName = HistoryFileName.CreateSourceName(_currentProcessName, _currentWindowTitle);
 
         if (string.IsNullOrWhiteSpace(text) && image == null)
             return;
@@ -113,10 +121,11 @@ public sealed class AppController : IDisposable
         _chat.AddComboMessage(image, text, true);
         _chat.ClearInput();
 
-        _historyWriter.EnqueueUserMessage(text, image, windowTitle);
+        _historyWriter.EnqueueUserMessage(text, image, sourceName);
 
         _currentScreenshot = null;
         _currentWindowTitle = null;
+        _currentProcessName = null;
 
         HideChat();
     }
