@@ -151,7 +151,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
-                       Text="Enter send    Shift+Enter new line    Esc close"
+                       Text="Shift+Enter new line    Esc close"
                        Foreground="{StaticResource VyraMutedTextBrush}"
                        VerticalAlignment="Center"/>
 
