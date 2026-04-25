@@ -42,6 +42,22 @@ public sealed class HistoryWriterService : IDisposable, IAsyncDisposable
             ErrorHandler.Report(new InvalidOperationException("History queue is closed"), "History enqueue failed");
     }
 
+    public void EnqueueAssistantMessage(string? text)
+    {
+        if (_isDisposed || string.IsNullOrWhiteSpace(text))
+            return;
+
+        var message = new PendingHistoryMessage(
+            Role: "ASSISTANT",
+            Text: text,
+            Image: null,
+            SourceName: null,
+            Timestamp: DateTime.Now);
+
+        if (!_queue.Writer.TryWrite(message))
+            ErrorHandler.Report(new InvalidOperationException("History queue is closed"), "History enqueue failed");
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_isDisposed) return;

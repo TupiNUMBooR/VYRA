@@ -44,6 +44,13 @@ public partial class ChatWindow : Window
 
     public void ClearInput() => InputBox.Clear();
 
+    public void SetBusy(bool isBusy)
+    {
+        InputBox.IsEnabled = !isBusy;
+        SendScreenshotCheckBox.IsEnabled = !isBusy;
+        Cursor = isBusy ? WpfInput.Cursors.Wait : null;
+    }
+
     public void CenterOnVirtualScreen()
     {
         ApplyScreenRelativeSize();

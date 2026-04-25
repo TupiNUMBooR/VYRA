@@ -1,9 +1,10 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VYRA.Core", "VYRA.Core\VYRA.Core.csproj", "{3293DA70-0223-47F5-AD9E-C173BF2B8A6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VYRA.OpenAI", "VYRA.OpenAI\VYRA.OpenAI.csproj", "{A9A8F2C7-0F5D-4F04-B672-52CB78EE0F19}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VYRA.WPF", "VYRA.WPF\VYRA.WPF.csproj", "{9F32085A-4A6D-4140-9875-86040DC5C151}"
 EndProject
@@ -20,6 +21,10 @@ Global
 		{3293DA70-0223-47F5-AD9E-C173BF2B8A6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3293DA70-0223-47F5-AD9E-C173BF2B8A6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3293DA70-0223-47F5-AD9E-C173BF2B8A6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9A8F2C7-0F5D-4F04-B672-52CB78EE0F19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9A8F2C7-0F5D-4F04-B672-52CB78EE0F19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9A8F2C7-0F5D-4F04-B672-52CB78EE0F19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9A8F2C7-0F5D-4F04-B672-52CB78EE0F19}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9F32085A-4A6D-4140-9875-86040DC5C151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9F32085A-4A6D-4140-9875-86040DC5C151}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F32085A-4A6D-4140-9875-86040DC5C151}.Release|Any CPU.ActiveCfg = Release|Any CPU

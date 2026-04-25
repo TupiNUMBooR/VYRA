@@ -11,6 +11,7 @@ public sealed class TrayIconManager : IDisposable
     private readonly TaskbarIcon _taskbarIcon;
 
     public event Action? OpenChatRequested;
+    public event Action? ConfigureOpenAiRequested;
     public event Action? ExitRequested;
 
     public TrayIconManager()
@@ -35,10 +36,14 @@ public sealed class TrayIconManager : IDisposable
         var openChat = new MenuItem { Header = "Open chat" };
         openChat.Click += (_, _) => OpenChatRequested?.Invoke();
 
+        var openAiToken = new MenuItem { Header = "OpenAI token..." };
+        openAiToken.Click += (_, _) => ConfigureOpenAiRequested?.Invoke();
+
         var exit = new MenuItem { Header = "Exit" };
         exit.Click += (_, _) => ExitRequested?.Invoke();
 
         menu.Items.Add(openChat);
+        menu.Items.Add(openAiToken);
         menu.Items.Add(new Separator());
         menu.Items.Add(exit);
 
