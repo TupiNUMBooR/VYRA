@@ -70,6 +70,14 @@ public partial class ChatWindow : Window
         ScrollHistoryToBottom();
     }
 
+    public void AddComboMessage(BitmapSource? image, string? text, bool isUser)
+    {
+        if (image == null && string.IsNullOrWhiteSpace(text)) return;
+
+        _messages.Add(ChatMessageViewModel.ComboMessage(image, text, isUser));
+        ScrollHistoryToBottom();
+    }
+
     public void SetWindowTitle(string? title)
     {
         Title = string.IsNullOrWhiteSpace(title)
@@ -133,7 +141,7 @@ public partial class ChatWindow : Window
     {
         if (e.Key != WpfInput.Key.Enter) return;
 
-        if (WpfInput.Keyboard.Modifiers.HasFlag(WpfInput.ModifierKeys.Shift) || WpfInput.Keyboard.Modifiers.HasFlag(WpfInput.ModifierKeys.Control))
+        if (WpfInput.Keyboard.Modifiers.HasFlag(WpfInput.ModifierKeys.Shift))
         {
             var caret = InputBox.CaretIndex;
             InputBox.Text = InputBox.Text.Insert(caret, Environment.NewLine);

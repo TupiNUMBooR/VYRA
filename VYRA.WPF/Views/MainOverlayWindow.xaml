@@ -7,8 +7,7 @@
         ShowInTaskbar="False"
         Topmost="True"
         AllowsTransparency="True"
-        Background="Black"
-        Opacity="0.01"
+        Background="Transparent"
         WindowStartupLocation="Manual">
-    <Grid/>
+    <Grid Background="#66000000"/>
 </Window>

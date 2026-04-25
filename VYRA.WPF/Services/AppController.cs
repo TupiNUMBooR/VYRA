@@ -101,14 +101,12 @@ public sealed class AppController : IDisposable
 
     private void SendChat(string text, bool sendScreenshot)
     {
-        if (string.IsNullOrWhiteSpace(text) && !sendScreenshot)
+        var image = sendScreenshot ? _currentScreenshot : null;
+
+        if (string.IsNullOrWhiteSpace(text) && image == null)
             return;
 
-        if (!string.IsNullOrWhiteSpace(text))
-            _chat.AddTextMessage(text, true);
-
-        if (sendScreenshot && _currentScreenshot != null)
-            _chat.AddImageMessage(_currentScreenshot, true);
+        _chat.AddComboMessage(image, text, true);
 
         _chat.ClearInput();
         _currentScreenshot = null;

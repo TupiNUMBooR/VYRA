@@ -28,5 +28,8 @@ public sealed class ChatMessageViewModel
         : new Media.SolidColorBrush(Media.Color.FromRgb(20, 30, 20));
 
     public static ChatMessageViewModel TextMessage(string text, bool isUser) => new(text, null, isUser);
+
     public static ChatMessageViewModel ImageMessage(BitmapSource image, bool isUser) => new(null, image, isUser);
+
+    public static ChatMessageViewModel ComboMessage(BitmapSource? image, string? text, bool isUser) => new(text, image, isUser);
 }
