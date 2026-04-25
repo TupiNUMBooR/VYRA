@@ -34,6 +34,7 @@ public sealed class HistoryService
         var todayHistory = await ReadDayAsync(todayDate, cancellationToken).ConfigureAwait(false)
             ?? new HistoryDay(todayDate, Array.Empty<HistoryMessage>());
 
+        var loadedDays = new List<HistoryDay> { todayHistory };
         var context = new List<HistoryMessage>();
         AddContextMessages(context, todayHistory.Messages, contextMessageLimit);
 
@@ -46,13 +47,15 @@ public sealed class HistoryService
             if (previous == null)
                 break;
 
+            loadedDays.Add(previous);
             AddContextMessages(context, previous.Messages, contextMessageLimit);
             cursor = previous.Date;
         }
 
         context.Reverse();
+        loadedDays.Reverse();
 
-        return new HistoryLoadResult(todayHistory, context);
+        return new HistoryLoadResult(todayHistory, loadedDays, context);
     }
 
     public async Task<HistoryDay?> ReadDayAsync(

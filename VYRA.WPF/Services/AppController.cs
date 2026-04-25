@@ -255,8 +255,10 @@ public sealed class AppController : IDisposable
         catch (Exception ex)
         {
             ErrorHandler.Report(ex, "Startup history load failed");
+            var emptyToday = new HistoryDay(DateTime.Today, Array.Empty<HistoryMessage>());
             var empty = new HistoryLoadResult(
-                new HistoryDay(DateTime.Today, Array.Empty<HistoryMessage>()),
+                emptyToday,
+                new[] { emptyToday },
                 Array.Empty<HistoryMessage>());
 
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
@@ -285,10 +287,17 @@ public sealed class AppController : IDisposable
         if (history == null)
             return;
 
-        var viewModels = CreateDayViewModels(history.Today).ToList();
+        IReadOnlyList<HistoryDay> loadedDays = history.LoadedDaysForUi.Count > 0
+            ? history.LoadedDaysForUi
+            : new[] { history.Today };
+
+        var viewModels = loadedDays
+            .SelectMany(CreateDayViewModels)
+            .ToList();
+
         _chat.LoadHistoryDay(viewModels);
-        _oldestLoadedUiDate = history.Today.Date;
-        _lastUiMessageDate = history.Today.Date;
+        _oldestLoadedUiDate = loadedDays[0].Date;
+        _lastUiMessageDate = loadedDays[^1].Date;
         _isInitialHistoryShown = true;
     }
 
