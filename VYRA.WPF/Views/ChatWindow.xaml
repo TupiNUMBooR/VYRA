@@ -16,15 +16,27 @@
         Closing="Window_Closing">
 
     <Window.Resources>
+        <SolidColorBrush x:Key="VyraBackgroundBrush" Color="#111111"/>
+        <SolidColorBrush x:Key="VyraPanelBrush" Color="#2F2F2F"/>
+        <SolidColorBrush x:Key="VyraInputBrush" Color="#151A17"/>
+
+        <SolidColorBrush x:Key="VyraTextBrush" Color="#F2FFF0"/>
+        <SolidColorBrush x:Key="VyraMutedTextBrush" Color="#B7C9B2"/>
+        <SolidColorBrush x:Key="VyraAccentBrush" Color="#9EFF00"/>
+        <SolidColorBrush x:Key="VyraBorderBrush" Color="#7ED957"/>
+
+        <SolidColorBrush x:Key="VyraUserBubbleBrush" Color="#263126"/>
+        <SolidColorBrush x:Key="VyraBotBubbleBrush" Color="#252525"/>
+
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
         <Style x:Key="VyraTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource VyraInputBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource VyraTextBrush}"/>
-            <Setter Property="CaretBrush" Value="{StaticResource VyraTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource VyraAccentBrush}"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="15"/>
-            <Setter Property="BorderBrush" Value="#2F6F2F"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VyraBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
@@ -40,20 +52,20 @@
                         HorizontalAlignment="{Binding BubbleAlignment}"
                         CornerRadius="12">
                     <StackPanel>
-                      <Image Source="{Binding Image}"
-                            Visibility="{Binding HasImage, Converter={StaticResource BoolToVisibility}}"
-                            Width="400"
-                            Height="250"
-                            Stretch="Uniform"
-                            Margin="0,0,0,8"/>
+                        <Image Source="{Binding Image}"
+                               Visibility="{Binding HasImage, Converter={StaticResource BoolToVisibility}}"
+                               Width="400"
+                               Height="250"
+                               Stretch="Uniform"
+                               Margin="0,0,0,8"/>
 
-                      <TextBlock Text="{Binding Text}"
-                                Visibility="{Binding HasText, Converter={StaticResource BoolToVisibility}}"
-                                Foreground="LightGreen"
-                                FontFamily="Consolas"
-                                FontSize="15"
-                                TextWrapping="Wrap"/>
-                  </StackPanel>
+                        <TextBlock Text="{Binding Text}"
+                                   Visibility="{Binding HasText, Converter={StaticResource BoolToVisibility}}"
+                                   Foreground="{StaticResource VyraTextBrush}"
+                                   FontFamily="Consolas"
+                                   FontSize="15"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
                 </Border>
             </Grid>
         </DataTemplate>
@@ -65,6 +77,7 @@
             <RowDefinition Height="160"/>
             <RowDefinition Height="34"/>
         </Grid.RowDefinitions>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition x:Name="ScreenshotColumn" Width="1*"/>
@@ -74,7 +87,7 @@
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
                 Background="{StaticResource VyraPanelBrush}"
-                BorderBrush="#183018"
+                BorderBrush="{StaticResource VyraBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="12"
@@ -96,7 +109,7 @@
                 Grid.Column="1"
                 Margin="0,0,0,8"
                 Background="{StaticResource VyraPanelBrush}"
-                BorderBrush="#2F6F2F"
+                BorderBrush="{StaticResource VyraBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
                 Padding="6">

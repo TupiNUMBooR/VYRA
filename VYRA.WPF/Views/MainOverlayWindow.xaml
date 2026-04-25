@@ -9,5 +9,5 @@
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="Manual">
-    <Grid Background="#66000000"/>
+    <Grid Background="#99000000"/>
 </Window>
