@@ -13,6 +13,8 @@ public partial class ChatWindow : Window
 {
     private readonly ObservableCollection<ChatMessageViewModel> _messages = new();
     private bool _isClosingForReal;
+    private bool _isSending;
+    private bool _hasScreenshot;
 
     public event EventHandler<ChatSendRequestedEventArgs>? SendRequested;
     public event Action? CloseRequested;
@@ -25,12 +27,18 @@ public partial class ChatWindow : Window
         HistoryList.ItemsSource = _messages;
         Loaded += (_, _) => FocusInput();
         UpdatePreviewLayout();
+        UpdateSendAvailability();
     }
+
+    public bool IsSending => _isSending;
 
     public void ResetForOpen()
     {
-        SendScreenshotCheckBox.IsChecked = true;
+        if (_hasScreenshot)
+            SendScreenshotCheckBox.IsChecked = true;
+
         UpdatePreviewLayout();
+        UpdateSendAvailability();
         FocusInput();
     }
 
@@ -42,12 +50,17 @@ public partial class ChatWindow : Window
         InputBox.CaretIndex = InputBox.Text.Length;
     }
 
-    public void ClearInput() => InputBox.Clear();
+    public void ClearInput()
+    {
+        InputBox.Clear();
+        UpdateSendAvailability();
+    }
 
     public void SetBusy(bool isBusy)
     {
-        InputBox.IsEnabled = !isBusy;
-        SendScreenshotCheckBox.IsEnabled = !isBusy;
+        _isSending = isBusy;
+        SendButton.IsEnabled = CanSend();
+        SendScreenshotCheckBox.IsEnabled = !isBusy && _hasScreenshot;
         Cursor = isBusy ? WpfInput.Cursors.Wait : null;
     }
 
@@ -62,7 +75,21 @@ public partial class ChatWindow : Window
     public void SetPreviewImage(BitmapSource? image)
     {
         ScreenshotPreview.Source = image;
+        _hasScreenshot = image != null;
+        SendScreenshotCheckBox.IsEnabled = !_isSending && _hasScreenshot;
+
+        if (!_hasScreenshot)
+            SendScreenshotCheckBox.IsChecked = false;
+        else if (SendScreenshotCheckBox.IsChecked != true)
+            SendScreenshotCheckBox.IsChecked = true;
+
         UpdatePreviewLayout();
+        UpdateSendAvailability();
+    }
+
+    public void ClearScreenshotInput()
+    {
+        SetPreviewImage(null);
     }
 
     public void AddTextMessage(string text, bool isUser)
@@ -71,6 +98,14 @@ public partial class ChatWindow : Window
 
         _messages.Add(ChatMessageViewModel.TextMessage(text, isUser));
         ScrollHistoryToBottom();
+    }
+
+    public ChatMessageViewModel AddPendingUserMessage(BitmapSource? image, string? text)
+    {
+        var message = ChatMessageViewModel.PendingUserMessage(image, text);
+        _messages.Add(message);
+        ScrollHistoryToBottom();
+        return message;
     }
 
     public void AddImageMessage(BitmapSource image, bool isUser)
@@ -106,8 +141,22 @@ public partial class ChatWindow : Window
         Height = Math.Clamp(SystemParameters.WorkArea.Height * 0.8, MinHeight, 1000);
     }
 
+    private bool CanSend()
+    {
+        if (_isSending)
+            return false;
+
+        var hasText = !string.IsNullOrWhiteSpace(InputBox.Text);
+        var hasSelectedScreenshot = _hasScreenshot && SendScreenshotCheckBox.IsChecked == true;
+
+        return hasText || hasSelectedScreenshot;
+    }
+
     private void Send()
     {
+        if (!CanSend())
+            return;
+
         SendRequested?.Invoke(
             this,
             new ChatSendRequestedEventArgs(InputBox.Text, SendScreenshotCheckBox.IsChecked == true));
@@ -115,8 +164,12 @@ public partial class ChatWindow : Window
 
     private void ToggleScreenshot()
     {
+        if (_isSending || !_hasScreenshot)
+            return;
+
         SendScreenshotCheckBox.IsChecked = SendScreenshotCheckBox.IsChecked != true;
         UpdatePreviewLayout();
+        UpdateSendAvailability();
         FocusInput();
     }
 
@@ -129,6 +182,12 @@ public partial class ChatWindow : Window
 
         Grid.SetColumnSpan(InputBox, visible ? 1 : 2);
         InputBox.Margin = visible ? new Thickness(0, 0, 10, 8) : new Thickness(0, 0, 0, 8);
+    }
+
+    private void UpdateSendAvailability()
+    {
+        if (IsLoaded)
+            SendButton.IsEnabled = CanSend();
     }
 
     private void ShowImagePreview(BitmapSource source)
@@ -207,9 +266,21 @@ public partial class ChatWindow : Window
         e.Handled = true;
     }
 
+    private void InputBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateSendAvailability();
+    }
+
+    private void SendButton_Click(object sender, RoutedEventArgs e)
+    {
+        Send();
+        FocusInput();
+    }
+
     private void SendScreenshotCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         UpdatePreviewLayout();
+        UpdateSendAvailability();
         FocusInput();
     }
 

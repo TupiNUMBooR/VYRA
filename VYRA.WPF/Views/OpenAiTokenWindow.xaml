@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="Введите OpenAI API token"
+                   Text="Enter OpenAI API token"
                    Foreground="#F2FFF0"
                    FontFamily="Consolas"
                    FontSize="15"
@@ -38,7 +38,7 @@
                      KeyDown="TokenBox_KeyDown"/>
 
         <TextBlock Grid.Row="2"
-                   Text="Хранится локально через Windows DPAPI. Маленький сейф, не свалка."
+                   Text="Stored locally with Windows DPAPI. Tiny vault, not a junk drawer."
                    Foreground="#B7C9B2"
                    TextWrapping="Wrap"/>
 

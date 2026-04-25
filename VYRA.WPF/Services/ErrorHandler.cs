@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text;
-using Forms = System.Windows.Forms;
 
 namespace VYRA.WPF.Services;
 
@@ -37,7 +36,7 @@ public static class ErrorHandler
 
             Console.Error.WriteLine(text);
             WriteLog(text);
-            ShowNotification(context, ex.Message);
+            NotificationService.ShowError("VYRA error", $"{context}\n{ex.Message}");
         }
         catch
         {
@@ -74,34 +73,5 @@ public static class ErrorHandler
 
         lock (Lock)
             File.AppendAllText(path, text, Encoding.UTF8);
-    }
-
-    private static void ShowNotification(string context, string message)
-    {
-        var app = System.Windows.Application.Current;
-
-        if (app?.Dispatcher == null || app.Dispatcher.CheckAccess())
-        {
-            ShowNotificationCore(context, message);
-            return;
-        }
-
-        app.Dispatcher.BeginInvoke(() => ShowNotificationCore(context, message));
-    }
-
-    private static void ShowNotificationCore(string context, string message)
-    {
-        using var icon = new Forms.NotifyIcon
-        {
-            Icon = System.Drawing.SystemIcons.Error,
-            Visible = true,
-            Text = "VYRA"
-        };
-
-        icon.ShowBalloonTip(
-            5000,
-            "VYRA error",
-            $"{context}\n{message}",
-            Forms.ToolTipIcon.Error);
     }
 }

@@ -43,6 +43,17 @@
             <Setter Property="AcceptsReturn" Value="True"/>
         </Style>
 
+        <Style x:Key="VyraSendButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#123F18"/>
+            <Setter Property="Foreground" Value="{StaticResource VyraTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VyraBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="MinWidth" Value="112"/>
+        </Style>
+
         <DataTemplate x:Key="MessageTemplate">
             <Grid Margin="0,4">
                 <Border Padding="10"
@@ -66,6 +77,14 @@
                                    FontFamily="Consolas"
                                    FontSize="15"
                                    TextWrapping="Wrap"/>
+
+                        <TextBlock Text="{Binding StatusText}"
+                                   Visibility="{Binding HasStatus, Converter={StaticResource BoolToVisibility}}"
+                                   Foreground="{StaticResource VyraMutedTextBrush}"
+                                   FontFamily="Consolas"
+                                   FontSize="13"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -104,7 +123,8 @@
                  Grid.Column="0"
                  Margin="0,0,10,8"
                  Style="{StaticResource VyraTextBoxStyle}"
-                 PreviewKeyDown="InputBox_PreviewKeyDown"/>
+                 PreviewKeyDown="InputBox_PreviewKeyDown"
+                 TextChanged="InputBox_TextChanged"/>
 
         <Border x:Name="ScreenshotPreviewHost"
                 Grid.Row="1"
@@ -127,6 +147,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
@@ -134,8 +155,15 @@
                        Foreground="{StaticResource VyraMutedTextBrush}"
                        VerticalAlignment="Center"/>
 
+            <Button x:Name="SendButton"
+                    Grid.Column="1"
+                    Content="Send (Enter)"
+                    Style="{StaticResource VyraSendButtonStyle}"
+                    Margin="0,0,14,0"
+                    Click="SendButton_Click"/>
+
             <CheckBox x:Name="SendScreenshotCheckBox"
-                      Grid.Column="1"
+                      Grid.Column="2"
                       Content="Send screenshot (Alt+S)"
                       Foreground="{StaticResource VyraTextBrush}"
                       IsChecked="True"

@@ -1,8 +1,11 @@
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using VYRA.Core.History;
 using VYRA.Core.Storage;
 using VYRA.OpenAI;
+using VYRA.WPF.ViewModels;
 using VYRA.WPF.Views;
 
 namespace VYRA.WPF.Services;
@@ -18,6 +21,7 @@ public sealed class AppController : IDisposable
     private readonly HistoryWriterService _historyWriter = new();
     private readonly OpenAiTokenStore _tokenStore = new();
     private readonly OpenAiChatClient _openAi = new();
+    private readonly HistoryPaths _historyPaths = new();
     private readonly List<OpenAiChatMessage> _textContext = new();
 
     private BitmapSource? _currentScreenshot;
@@ -34,20 +38,14 @@ public sealed class AppController : IDisposable
 
         _chat.SendRequested += async (_, e) =>
         {
-            try
-            {
-                await SendChatAsync(e.Text, e.SendScreenshot).ConfigureAwait(true);
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.Report(ex, "Send chat failed");
-            }
+            await SendChatAsync(e.Text, e.SendScreenshot).ConfigureAwait(true);
         };
 
         _chat.CloseRequested += HideChat;
 
         _tray.OpenChatRequested += ShowChat;
         _tray.ConfigureOpenAiRequested += ConfigureOpenAiToken;
+        _tray.OpenHistoryRequested += OpenHistoryFolder;
         _tray.ExitRequested += Exit;
     }
 
@@ -59,6 +57,8 @@ public sealed class AppController : IDisposable
         _overlay.Show();
         _overlay.Hide();
         _tray.Show();
+
+        _ = CheckOpenAiConnectionAndNotifyAsync("OpenAI connection OK.");
     }
 
     private void ToggleChat()
@@ -121,50 +121,64 @@ public sealed class AppController : IDisposable
 
     private async Task SendChatAsync(string text, bool sendScreenshot)
     {
-        var image = sendScreenshot ? _currentScreenshot : null;
-        var sourceName = HistoryFileName.CreateSourceName(_currentProcessName, _currentWindowTitle);
-
-        if (string.IsNullOrWhiteSpace(text) && image == null)
+        if (_chat.IsSending)
             return;
 
-        var token = _tokenStore.TryLoadToken();
-        if (string.IsNullOrWhiteSpace(token))
-            throw new InvalidOperationException("OpenAI token is not configured. Use tray menu: OpenAI token...");
+        var image = sendScreenshot ? _currentScreenshot : null;
+        var trimmedText = text.Trim();
 
-        _chat.SetBusy(true);
-        _chat.AddComboMessage(image, text, true);
+        if (string.IsNullOrWhiteSpace(trimmedText) && image == null)
+            return;
+
+        var sourceName = HistoryFileName.CreateSourceName(_currentProcessName, _currentWindowTitle);
+        var userBubble = _chat.AddPendingUserMessage(image, trimmedText);
+
+        _historyWriter.EnqueueUserMessage(trimmedText, image, sourceName);
         _chat.ClearInput();
 
-        _historyWriter.EnqueueUserMessage(text, image, sourceName);
+        if (image != null)
+        {
+            _currentScreenshot = null;
+            _currentWindowTitle = null;
+            _currentProcessName = null;
+            _chat.ClearScreenshotInput();
+        }
 
-        var screenshotJpg = image == null ? null : ScreenshotService.ToJpgBytes(image);
-        var userMessage = new OpenAiChatMessage(
-            "user",
-            string.IsNullOrWhiteSpace(text) ? "Look at the current screenshot." : text.Trim());
-
-        var requestMessages = BuildRequestMessages(userMessage);
+        _chat.SetBusy(true);
 
         try
         {
+            var token = LoadTokenOrThrow();
+            var screenshotJpg = image == null ? null : ScreenshotService.ToJpgBytes(image);
+            var userMessage = new OpenAiChatMessage(
+                "user",
+                string.IsNullOrWhiteSpace(trimmedText) ? "Look at the current screenshot." : trimmedText);
+
+            var requestMessages = BuildRequestMessages(userMessage);
             var reply = await _openAi.SendAsync(
                     new OpenAiOptions(token),
                     new OpenAiChatRequest(requestMessages, screenshotJpg))
                 .ConfigureAwait(true);
 
+            userBubble.MarkDelivered();
             _chat.AddTextMessage(reply.Text, isUser: false);
             _historyWriter.EnqueueAssistantMessage(reply.Text);
 
             RememberTextMessage(userMessage);
             RememberTextMessage(new OpenAiChatMessage("assistant", reply.Text));
 
-            _currentScreenshot = null;
-            _currentWindowTitle = null;
-            _currentProcessName = null;
-            _chat.SetPreviewImage(null);
+            if (!_isChatOpen)
+                NotificationService.ShowInfo("VYRA answered", reply.Text);
+        }
+        catch (Exception ex)
+        {
+            userBubble.MarkFailed();
+            ErrorHandler.Report(ex, "Send chat failed");
         }
         finally
         {
             _chat.SetBusy(false);
+            _chat.FocusInput();
         }
     }
 
@@ -192,7 +206,7 @@ public sealed class AppController : IDisposable
         _textContext.RemoveRange(0, _textContext.Count - MaxContextMessages);
     }
 
-    private void ConfigureOpenAiToken()
+    private async void ConfigureOpenAiToken()
     {
         try
         {
@@ -208,17 +222,64 @@ public sealed class AppController : IDisposable
             if (window.ClearRequested)
             {
                 _tokenStore.ClearToken();
+                NotificationService.ShowWarning("OpenAI token", "OpenAI token cleared.");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(window.Token))
+            {
+                NotificationService.ShowWarning("OpenAI token", "OpenAI token is empty.");
                 return;
+            }
 
             _tokenStore.SaveToken(window.Token);
+            await CheckOpenAiConnectionAndNotifyAsync("OpenAI token saved and verified.").ConfigureAwait(true);
         }
         catch (Exception ex)
         {
             ErrorHandler.Report(ex, "Configure OpenAI token failed");
+        }
+    }
+
+    private async Task CheckOpenAiConnectionAndNotifyAsync(string successMessage)
+    {
+        try
+        {
+            var token = LoadTokenOrThrow();
+            await _openAi.CheckConnectionAsync(new OpenAiOptions(token)).ConfigureAwait(true);
+            NotificationService.ShowInfo("VYRA", successMessage);
+        }
+        catch (Exception ex)
+        {
+            ErrorHandler.Report(ex, "OpenAI connection check failed");
+        }
+    }
+
+    private string LoadTokenOrThrow()
+    {
+        var token = _tokenStore.TryLoadToken();
+
+        if (string.IsNullOrWhiteSpace(token))
+            throw new InvalidOperationException("OpenAI token is not configured. Use tray menu: OpenAI token...");
+
+        return token;
+    }
+
+    private void OpenHistoryFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(_historyPaths.RootPath);
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _historyPaths.RootPath,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            ErrorHandler.Report(ex, "Open history folder failed");
         }
     }
 

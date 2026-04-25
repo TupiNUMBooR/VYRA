@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,8 @@ namespace VYRA.OpenAI;
 public sealed class OpenAiChatClient : IDisposable
 {
     private const string ResponsesEndpoint = "https://api.openai.com/v1/responses";
+    private const string ModelsEndpoint = "https://api.openai.com/v1/models";
+
     private readonly HttpClient _httpClient;
     private readonly bool _ownsHttpClient;
 
@@ -14,6 +17,34 @@ public sealed class OpenAiChatClient : IDisposable
     {
         _httpClient = httpClient ?? new HttpClient();
         _ownsHttpClient = httpClient == null;
+    }
+
+    public async Task CheckConnectionAsync(OpenAiOptions options, CancellationToken cancellationToken = default)
+    {
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, ModelsEndpoint);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+
+        HttpResponseMessage response;
+        string body;
+
+        try
+        {
+            response = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            throw new OpenAiConnectionException("OpenAI connection failed.", ex);
+        }
+
+        using (response)
+        {
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                throw new OpenAiAuthenticationException($"OpenAI token rejected: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+            if (!response.IsSuccessStatusCode)
+                throw new OpenAiConnectionException($"OpenAI connection check failed: {(int)response.StatusCode} {response.ReasonPhrase}\n{body}");
+        }
     }
 
     public async Task<OpenAiChatResponse> SendAsync(
@@ -31,11 +62,27 @@ public sealed class OpenAiChatClient : IDisposable
             Encoding.UTF8,
             "application/json");
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage response;
+        string body;
 
-        if (!response.IsSuccessStatusCode)
-            throw new OpenAiException($"OpenAI request failed: {(int)response.StatusCode} {response.ReasonPhrase}\n{body}");
+        try
+        {
+            response = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            throw new OpenAiConnectionException("OpenAI request failed before receiving a response.", ex);
+        }
+
+        using (response)
+        {
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                throw new OpenAiAuthenticationException($"OpenAI token rejected: {(int)response.StatusCode} {response.ReasonPhrase}");
+
+            if (!response.IsSuccessStatusCode)
+                throw new OpenAiException($"OpenAI request failed: {(int)response.StatusCode} {response.ReasonPhrase}\n{body}");
+        }
 
         var text = ExtractOutputText(body);
         if (string.IsNullOrWhiteSpace(text))

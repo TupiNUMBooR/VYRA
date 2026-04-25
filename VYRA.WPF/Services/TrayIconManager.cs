@@ -12,6 +12,7 @@ public sealed class TrayIconManager : IDisposable
 
     public event Action? OpenChatRequested;
     public event Action? ConfigureOpenAiRequested;
+    public event Action? OpenHistoryRequested;
     public event Action? ExitRequested;
 
     public TrayIconManager()
@@ -39,11 +40,15 @@ public sealed class TrayIconManager : IDisposable
         var openAiToken = new MenuItem { Header = "OpenAI token..." };
         openAiToken.Click += (_, _) => ConfigureOpenAiRequested?.Invoke();
 
+        var openHistory = new MenuItem { Header = "Open history folder" };
+        openHistory.Click += (_, _) => OpenHistoryRequested?.Invoke();
+
         var exit = new MenuItem { Header = "Exit" };
         exit.Click += (_, _) => ExitRequested?.Invoke();
 
         menu.Items.Add(openChat);
         menu.Items.Add(openAiToken);
+        menu.Items.Add(openHistory);
         menu.Items.Add(new Separator());
         menu.Items.Add(exit);
 

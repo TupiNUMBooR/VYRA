@@ -1,6 +1,6 @@
 namespace VYRA.OpenAI;
 
-public sealed class OpenAiException : Exception
+public class OpenAiException : Exception
 {
     public OpenAiException(string message) : base(message)
     {
