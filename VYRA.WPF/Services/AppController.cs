@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
 using VYRA.Core.History;
+using VYRA.Core.Storage;
 using VYRA.WPF.Views;
 
 namespace VYRA.WPF.Services;
@@ -45,7 +46,8 @@ public sealed class AppController : IDisposable
 
     public void Start()
     {
-        AppLinkService.EnsureConvenienceLinks();
+        foreach (var error in AppStorageLinks.EnsureConvenienceLinks())
+            ErrorHandler.Report(error, "Create convenience links failed");
 
         _overlay.Show();
         _overlay.Hide();
