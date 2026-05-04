@@ -10,6 +10,8 @@ public sealed class TrayIconManager : IDisposable
 {
     private readonly TaskbarIcon _taskbarIcon;
 
+    private const string IconResourceName = "VYRA.WPF.Assets.icon.ico";
+
     public event Action? OpenChatRequested;
     public event Action? ConfigureOpenAiRequested;
     public event Action? OpenHistoryRequested;
@@ -34,7 +36,7 @@ public sealed class TrayIconManager : IDisposable
     {
         var menu = new ContextMenu();
 
-        var openChat = new MenuItem { Header = "Open chat" };
+        var openChat = new MenuItem { Header = "Open VYRA (Shift+T)" };
         openChat.Click += (_, _) => OpenChatRequested?.Invoke();
 
         var openAiToken = new MenuItem { Header = "OpenAI token..." };
@@ -57,18 +59,16 @@ public sealed class TrayIconManager : IDisposable
 
     private static BitmapImage LoadIconSource()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
-        if (!File.Exists(path))
-            path = Path.Combine(AppContext.BaseDirectory, "Assets", "VYRA1.jpg");
+        using var stream = typeof(TrayIconManager).Assembly.GetManifestResourceStream(IconResourceName)
+            ?? throw new InvalidOperationException($"Missing embedded resource: {IconResourceName}");
 
         var image = new BitmapImage();
         image.BeginInit();
         image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = File.Exists(path)
-            ? new Uri(path, UriKind.Absolute)
-            : new Uri("pack://application:,,,/VYRA.WPF;component/Assets/VYRA1.jpg", UriKind.Absolute);
+        image.StreamSource = stream;
         image.EndInit();
         image.Freeze();
+
         return image;
     }
 
