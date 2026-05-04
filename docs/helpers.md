@@ -17,6 +17,13 @@ magick -background none \
     \( VYRA8.png -resize 16x16  -gravity center -extent 16x16  \) \
     -delete 0 \
     "icon.ico"
+
+magick VYRA1.jpg \
+  -background black \
+  -resize 500x500 \
+  -gravity center \
+  -extent 630x500 \
+  icon-itch.jpg
 ```
 
 # Архив без .git и .gitignore-мусора
