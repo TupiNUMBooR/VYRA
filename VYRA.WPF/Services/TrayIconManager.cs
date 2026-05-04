@@ -36,7 +36,7 @@ public sealed class TrayIconManager : IDisposable
     {
         var menu = new ContextMenu();
 
-        var openChat = new MenuItem { Header = "Open VYRA (Shift+T)" };
+        var openChat = new MenuItem { Header = "Open VYRA (Alt+T)" };
         openChat.Click += (_, _) => OpenChatRequested?.Invoke();
 
         var openAiToken = new MenuItem { Header = "OpenAI token..." };
