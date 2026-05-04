@@ -2,14 +2,18 @@
 
 <img src="VYRA.WPF/Assets/VYRA3.png" height="400">
 
-![Release](https://github.com/TupiNUMBooR/VYRA/actions/workflows/release.yml/badge.svg)
+![Release](https://github.com/TupiNUMBooR/VYRA/actions/workflows/cicd.yml/badge.svg)
 ![Latest Release](https://img.shields.io/github/release/TupiNUMBooR/VYRA)
 ![Release Date](https://img.shields.io/github/release-date/TupiNUMBooR/VYRA)
 
 ![Top Lang](https://img.shields.io/github/languages/top/TupiNUMBooR/VYRA?logo=csharp)
-![.NET](https://img.shields.io/badge/.NET-8.0-blueviolet?logo=dotnet)
-![WPF](https://img.shields.io/badge/UI-WPF-512BD4)
-![itch.io](https://img.shields.io/badge/deploy-itch.io-fa5c5c?logo=itchdotio)
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![WPF](https://img.shields.io/badge/UI-WPF-blue)
+![itch.io](https://img.shields.io/badge/deploy-itch.io-blue?logo=itchdotio)
+
+VYRA is a minimalist desktop overlay for screenshots, notes, and quick AI context.
+
+[VYRA builds on itch.io](https://tupinumboor.itch.io/vyra)
 
 ## Development
 
@@ -64,18 +68,3 @@ The release workflow uploads the Windows build to:
 `git tag 0.1.0`
 
 `git push origin 0.1.0`
-
-===
-
-## Ещё нужно
-
-Да, только это:
-
-```text
-1. itch project slug должен быть vyra
-2. GitHub repo name должен быть VYRA, иначе badge links поправить
-3. добавить BUTLER_API_KEY
-4. проверить, что TrayIconManager грузит embedded Assets/icon.ico
-```
-
-И да: лишние `Assets/VYRA*.jpg/png` теперь **не пихаются в exe**, кроме той картинки, которую README просто показывает из репы.
